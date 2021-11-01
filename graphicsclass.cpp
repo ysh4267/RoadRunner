@@ -20,8 +20,12 @@ GraphicsClass::GraphicsClass()
 	m_Bitmap = 0;
 
 	m_Text = 0;
-	playerPos = XMFLOAT3(0, 0, -2.2f);
-	playerSystemPos = XMFLOAT3(0, 0, -2.2f);
+	playerPos = XMFLOAT3(2.2f, 0, 2.0f);
+	playerSystemPos = XMFLOAT3(2.2f, 0, 0);
+	playerBackPos = XMFLOAT3(2.2f, 0, 0);
+
+	playerMaxSize = XMFLOAT2(2.0f, 3.0f);
+	playerMinSize = XMFLOAT2(-2.0f, -3.0f);
 }
 
 
@@ -110,39 +114,63 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		{
 		case 0:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/car.obj", L"./data/Car_07.dds");
+			carModel[i].maxSize = XMFLOAT2(2.0f, 4.0f);
+			carModel[i].minSize = XMFLOAT2(-2.0f, -4.0f);
 			break;
 		case 1:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/car.obj", L"./data/Car_08.dds");
+			carModel[i].maxSize = XMFLOAT2(2.0f, 4.0f);
+			carModel[i].minSize = XMFLOAT2(-2.0f, -4.0f);
 			break;
 		case 2:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/car.obj", L"./data/Car_09.dds");
+			carModel[i].maxSize = XMFLOAT2(2.0f, 4.0f);
+			carModel[i].minSize = XMFLOAT2(-2.0f, -4.0f);
 			break;
 		case 3:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/car2.obj", L"./data/Car_01.dds");
+			carModel[i].maxSize = XMFLOAT2(2.0f, 4.0f);
+			carModel[i].minSize = XMFLOAT2(-2.0f, -4.0f);
 			break;
 		case 4:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/car2.obj", L"./data/Car_02.dds");
+			carModel[i].maxSize = XMFLOAT2(2.0f, 4.0f);
+			carModel[i].minSize = XMFLOAT2(-2.0f, -4.0f);
 			break;
 		case 5:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/car2.obj", L"./data/Car_03.dds");
+			carModel[i].maxSize = XMFLOAT2(2.0f, 4.0f);
+			carModel[i].minSize = XMFLOAT2(-2.0f, -4.0f);
 			break;
 		case 6:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/truck.obj", L"./data/Car_04.dds");
+			carModel[i].maxSize = XMFLOAT2(2.0f, 5.0f);
+			carModel[i].minSize = XMFLOAT2(-2.0f, -5.0f);
 			break;
 		case 7:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/truck.obj", L"./data/Car_05.dds");
+			carModel[i].maxSize = XMFLOAT2(2.0f, 5.0f);
+			carModel[i].minSize = XMFLOAT2(-2.0f, -5.0f);
 			break;
 		case 8:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/truck.obj", L"./data/Car_06.dds");
+			carModel[i].maxSize = XMFLOAT2(2.0f, 5.0f);
+			carModel[i].minSize = XMFLOAT2(-2.0f, -5.0f);
 			break;
 		case 9:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/bus.obj", L"./data/Car_10.dds");
+			carModel[i].maxSize = XMFLOAT2(2.0f, 6.5f);
+			carModel[i].minSize = XMFLOAT2(-2.0f, -6.5f);
 			break;
 		case 10:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/bus.obj", L"./data/Car_11.dds");
+			carModel[i].maxSize = XMFLOAT2(2.0f, 6.5f);
+			carModel[i].minSize = XMFLOAT2(-2.0f, -6.5f);
 			break;
 		case 11:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/bus.obj", L"./data/Car_12.dds");
+			carModel[i].maxSize = XMFLOAT2(2.0f, 6.5f);
+			carModel[i].minSize = XMFLOAT2(-2.0f, -6.5f);
 			break;
 		default:
 			break;
@@ -244,17 +272,42 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 }
 
 void GraphicsClass::PressLeftButton() {
+	if (abs(playerPos.x - playerSystemPos.x) > 0.01f) return;
+	playerBackPos = playerSystemPos;
+	playerSystemPos.x += -5.0f;
+}
+
+void GraphicsClass::PressRightButton() {
+	if (abs(playerPos.x - playerSystemPos.x) > 0.01f) return;
+	playerBackPos = playerSystemPos;
+	playerSystemPos.x += 5.0f;
+}
+
+void GraphicsClass::PressSpaceButton() {
 	if (abs(playerPos.z - playerSystemPos.z) > 0.01f) return;
 	playerSystemPos.z += 5.0f;
 }
 
-void GraphicsClass::PressRightButton() {
-	if (abs(playerPos.z - playerSystemPos.z) > 0.01f) return;
-	playerSystemPos.z -= 5.0f;
+bool GraphicsClass::CheckCubeIntersection(XMFLOAT2* vMin1, XMFLOAT2* vMax1, XMFLOAT2* vMin2, XMFLOAT2* vMax2)
+{
+	if (vMin1->x <= vMax2->x && vMax1->x >= vMin2->x &&
+		vMin1->y <= vMax2->y && vMax1->y >= vMin2->y)
+		return true;
+	return false;
 }
 
-void GraphicsClass::PressSpaceButton() {
+bool GraphicsClass::IsCollision() {
+	for (auto object : carModel) {
+		if (CheckCubeIntersection(new XMFLOAT2(playerPos.x - 0.5f, playerPos.z - 0.5f), new XMFLOAT2(playerPos.x + 0.5f, playerPos.z + 0.5f), &object.minPosSize, &object.maxPosSize)) {
+			return true;
+		}
+	}
 
+	return false;
+}
+
+XMFLOAT2 GraphicsClass::XMFLOAT2SUM(XMFLOAT2 aF, XMFLOAT2 bF) {
+	return XMFLOAT2(aF.x + bF.x, aF.y + bF.y);
 }
 
 void GraphicsClass::Shutdown()
@@ -442,7 +495,7 @@ bool GraphicsClass::Render(float rotation)
 	
 	// Clear the buffers to begin the scene.
 	m_D3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
-	m_Camera->SetPosition(-playerPos.z + 0.0f, playerPos.y + 20.0f, playerPos.x + -13.0f);
+	m_Camera->SetPosition(playerPos.x + 0.0f, playerPos.y + 20.0f, playerPos.z + -13.0f);
 
 	// Generate the view matrix based on the camera's position.
 	m_Camera->Render();
@@ -458,6 +511,10 @@ bool GraphicsClass::Render(float rotation)
 	m_D3D->GetProjectionMatrix(projectionMatrix);
 
 	m_D3D->GetOrthoMatrix(orthoMatrix);
+
+	if (IsCollision()) {
+		playerSystemPos = playerBackPos;
+	}
 
 	UIViewMatrix = XMMatrixTranslation(0, 0, m_Camera->GetPosition().z + 30.0f);
 	UIMatrix = XMMatrixRotationRollPitchYaw(XMConvertToRadians(m_Camera->GetRotation().x), XMConvertToRadians(m_Camera->GetRotation().y), XMConvertToRadians(m_Camera->GetRotation().z));
@@ -487,7 +544,7 @@ bool GraphicsClass::Render(float rotation)
 
 	// Put the player model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	playerModel->Render(m_D3D->GetDeviceContext());
-	playerWorldMatrix = XMMatrixMultiply(XMMatrixTranslation(playerPos.x, playerPos.y, playerPos.z), XMMatrixRotationY(XMConvertToRadians(270)));
+	playerWorldMatrix = XMMatrixMultiply(XMMatrixTranslation(playerPos.x, playerPos.y, playerPos.z), XMMatrixRotationY(XMConvertToRadians(0)));
 
 	// Render the player model using the light shader.
 	result = m_LightShader->Render(m_D3D->GetDeviceContext(), playerModel->GetIndexCount(),
@@ -523,7 +580,10 @@ bool GraphicsClass::Render(float rotation)
 	{
 		// Put the map model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 		carModel[i].m_carModel->Render(m_D3D->GetDeviceContext());
-		carModel[i].worldMatrix = XMMatrixMultiply(XMMatrixTranslation(-5.0f, 0, i * 3.0f), XMMatrixRotationY(XMConvertToRadians(0.0f)));
+		carModel[i].worldPosition = XMFLOAT2(-7.5f, i * 3.0f);
+		carModel[i].worldMatrix = XMMatrixMultiply(XMMatrixTranslation(carModel[i].worldPosition.x, 0, carModel[i].worldPosition.y), XMMatrixRotationY(XMConvertToRadians(0.0f)));
+		carModel[i].maxPosSize = XMFLOAT2SUM(carModel[i].maxSize, carModel[i].worldPosition);
+		carModel[i].minPosSize = XMFLOAT2SUM(carModel[i].minSize, carModel[i].worldPosition);
 		// Render the map model using the light shader.
 		result = m_LightShader->Render(m_D3D->GetDeviceContext(), carModel[i].m_carModel->GetIndexCount(),
 			carModel[i].worldMatrix, viewMatrix, projectionMatrix,

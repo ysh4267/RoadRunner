@@ -60,6 +60,9 @@ public:
 	void PressRightButton();
 	void PressSpaceButton();
 	XMFLOAT3 XMFLOAT3LERP(XMFLOAT3, XMFLOAT3, float);
+	bool CheckCubeIntersection(XMFLOAT2*, XMFLOAT2*, XMFLOAT2*, XMFLOAT2*);
+	bool IsCollision();
+	XMFLOAT2 XMFLOAT2SUM(XMFLOAT2, XMFLOAT2);
 
 private:
 	bool Render(float);
@@ -81,7 +84,11 @@ private:
 	TextClass* m_Text;
 
 	XMFLOAT3 playerSystemPos;
+	XMFLOAT3 playerBackPos;
 	XMFLOAT3 playerPos;
+
+	XMFLOAT2 playerMinSize;
+	XMFLOAT2 playerMaxSize;
 };
 
 #endif
