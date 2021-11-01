@@ -224,7 +224,12 @@ void SystemClass::Run()
 		if (m_Input->IsRightPressed()) {
 			m_Graphics->PressRightButton();
 		}
-
+		if (m_Input->IsBackPressed()) {
+			m_Graphics->PressBackButton();
+		}
+		if (m_Input->IsFowardPressed()) {
+			m_Graphics->PressFowardButton();
+		}
 	}
 
 	return;

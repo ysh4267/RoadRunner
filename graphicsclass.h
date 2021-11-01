@@ -58,6 +58,8 @@ public:
 public:
 	void PressLeftButton();
 	void PressRightButton();
+	void PressBackButton();
+	void PressFowardButton();
 	void PressSpaceButton();
 	XMFLOAT3 XMFLOAT3LERP(XMFLOAT3, XMFLOAT3, float);
 	bool CheckCubeIntersection(XMFLOAT2*, XMFLOAT2*, XMFLOAT2*, XMFLOAT2*);

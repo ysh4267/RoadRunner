@@ -41,6 +41,8 @@ public:
 	bool IsRightPressed();
 	bool IsSpaceBarPressed();
 	bool IsEscapePressed();
+	bool IsFowardPressed();
+	bool IsBackPressed();
 	void GetMouseLocation(int&, int&);
 
 private:

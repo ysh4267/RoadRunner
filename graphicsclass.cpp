@@ -109,68 +109,75 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 			return false;
 		}
 
+		XMFLOAT2 carMaxSize = XMFLOAT2(2.0f, 3.0f);
+		XMFLOAT2 carMinSize = XMFLOAT2(-2.0f, -3.0f);
+		XMFLOAT2 truckMaxSize = XMFLOAT2(2.0f, 5.0f);
+		XMFLOAT2 truckMinSize = XMFLOAT2(-2.0f, -5.0f);
+		XMFLOAT2 busMaxSize = XMFLOAT2(2.0f, 7.5f);
+		XMFLOAT2 busMinSize = XMFLOAT2(-2.0f, -7.5f);
+
 		// Initialize the car model object.
 		switch (i)
 		{
 		case 0:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/car.obj", L"./data/Car_07.dds");
-			carModel[i].maxSize = XMFLOAT2(2.0f, 4.0f);
-			carModel[i].minSize = XMFLOAT2(-2.0f, -4.0f);
+			carModel[i].maxSize = carMaxSize;
+			carModel[i].minSize = carMinSize;
 			break;
 		case 1:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/car.obj", L"./data/Car_08.dds");
-			carModel[i].maxSize = XMFLOAT2(2.0f, 4.0f);
-			carModel[i].minSize = XMFLOAT2(-2.0f, -4.0f);
+			carModel[i].maxSize = carMaxSize;
+			carModel[i].minSize = carMinSize;
 			break;
 		case 2:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/car.obj", L"./data/Car_09.dds");
-			carModel[i].maxSize = XMFLOAT2(2.0f, 4.0f);
-			carModel[i].minSize = XMFLOAT2(-2.0f, -4.0f);
+			carModel[i].maxSize = carMaxSize;
+			carModel[i].minSize = carMinSize;
 			break;
 		case 3:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/car2.obj", L"./data/Car_01.dds");
-			carModel[i].maxSize = XMFLOAT2(2.0f, 4.0f);
-			carModel[i].minSize = XMFLOAT2(-2.0f, -4.0f);
+			carModel[i].maxSize = carMaxSize;
+			carModel[i].minSize = carMinSize;
 			break;
 		case 4:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/car2.obj", L"./data/Car_02.dds");
-			carModel[i].maxSize = XMFLOAT2(2.0f, 4.0f);
-			carModel[i].minSize = XMFLOAT2(-2.0f, -4.0f);
+			carModel[i].maxSize = carMaxSize;
+			carModel[i].minSize = carMinSize;
 			break;
 		case 5:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/car2.obj", L"./data/Car_03.dds");
-			carModel[i].maxSize = XMFLOAT2(2.0f, 4.0f);
-			carModel[i].minSize = XMFLOAT2(-2.0f, -4.0f);
+			carModel[i].maxSize = carMaxSize;
+			carModel[i].minSize = carMinSize;
 			break;
 		case 6:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/truck.obj", L"./data/Car_04.dds");
-			carModel[i].maxSize = XMFLOAT2(2.0f, 5.0f);
-			carModel[i].minSize = XMFLOAT2(-2.0f, -5.0f);
+			carModel[i].maxSize = truckMaxSize;
+			carModel[i].minSize = truckMinSize;
 			break;
 		case 7:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/truck.obj", L"./data/Car_05.dds");
-			carModel[i].maxSize = XMFLOAT2(2.0f, 5.0f);
-			carModel[i].minSize = XMFLOAT2(-2.0f, -5.0f);
+			carModel[i].maxSize = truckMaxSize;
+			carModel[i].minSize = truckMinSize;
 			break;
 		case 8:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/truck.obj", L"./data/Car_06.dds");
-			carModel[i].maxSize = XMFLOAT2(2.0f, 5.0f);
-			carModel[i].minSize = XMFLOAT2(-2.0f, -5.0f);
+			carModel[i].maxSize = truckMaxSize;
+			carModel[i].minSize = truckMinSize;
 			break;
 		case 9:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/bus.obj", L"./data/Car_10.dds");
-			carModel[i].maxSize = XMFLOAT2(2.0f, 6.5f);
-			carModel[i].minSize = XMFLOAT2(-2.0f, -6.5f);
+			carModel[i].maxSize = busMaxSize;
+			carModel[i].minSize = busMinSize;
 			break;
 		case 10:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/bus.obj", L"./data/Car_11.dds");
-			carModel[i].maxSize = XMFLOAT2(2.0f, 6.5f);
-			carModel[i].minSize = XMFLOAT2(-2.0f, -6.5f);
+			carModel[i].maxSize = busMaxSize;
+			carModel[i].minSize = busMinSize;
 			break;
 		case 11:
 			result = carModel[i].m_carModel->Initialize(m_D3D->GetDevice(), L"./data/bus.obj", L"./data/Car_12.dds");
-			carModel[i].maxSize = XMFLOAT2(2.0f, 6.5f);
-			carModel[i].minSize = XMFLOAT2(-2.0f, -6.5f);
+			carModel[i].maxSize = busMaxSize;
+			carModel[i].minSize = busMinSize;
 			break;
 		default:
 			break;
@@ -284,8 +291,19 @@ void GraphicsClass::PressRightButton() {
 }
 
 void GraphicsClass::PressSpaceButton() {
+
+}
+
+void GraphicsClass::PressFowardButton() {
 	if (abs(playerPos.z - playerSystemPos.z) > 0.01f) return;
-	playerSystemPos.z += 5.0f;
+	playerBackPos = playerSystemPos;
+	playerSystemPos.z += 1.0f;
+}
+
+void GraphicsClass::PressBackButton() {
+	if (abs(playerPos.z - playerSystemPos.z) > 0.01f) return;
+	playerBackPos = playerSystemPos;
+	playerSystemPos.z -= 1.0f;
 }
 
 bool GraphicsClass::CheckCubeIntersection(XMFLOAT2* vMin1, XMFLOAT2* vMax1, XMFLOAT2* vMin2, XMFLOAT2* vMax2)
@@ -298,7 +316,7 @@ bool GraphicsClass::CheckCubeIntersection(XMFLOAT2* vMin1, XMFLOAT2* vMax1, XMFL
 
 bool GraphicsClass::IsCollision() {
 	for (auto object : carModel) {
-		if (CheckCubeIntersection(new XMFLOAT2(playerPos.x - 0.5f, playerPos.z - 0.5f), new XMFLOAT2(playerPos.x + 0.5f, playerPos.z + 0.5f), &object.minPosSize, &object.maxPosSize)) {
+		if (CheckCubeIntersection(new XMFLOAT2(playerPos.x - 1.0f, playerPos.z - 2.5f), new XMFLOAT2(playerPos.x + 1.0f, playerPos.z + 2.5f), &object.minPosSize, &object.maxPosSize)) {
 			return true;
 		}
 	}
@@ -580,7 +598,7 @@ bool GraphicsClass::Render(float rotation)
 	{
 		// Put the map model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 		carModel[i].m_carModel->Render(m_D3D->GetDeviceContext());
-		carModel[i].worldPosition = XMFLOAT2(-7.5f, i * 3.0f);
+		carModel[i].worldPosition = XMFLOAT2(-2.5f + -5.0f * i, i * 3.0f);
 		carModel[i].worldMatrix = XMMatrixMultiply(XMMatrixTranslation(carModel[i].worldPosition.x, 0, carModel[i].worldPosition.y), XMMatrixRotationY(XMConvertToRadians(0.0f)));
 		carModel[i].maxPosSize = XMFLOAT2SUM(carModel[i].maxSize, carModel[i].worldPosition);
 		carModel[i].minPosSize = XMFLOAT2SUM(carModel[i].minSize, carModel[i].worldPosition);

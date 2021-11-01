@@ -235,6 +235,20 @@ bool InputClass::IsRightPressed() {
 	}
 	return false;
 }
+bool InputClass::IsFowardPressed() {
+	if (m_keyboardState[DIK_W] & 0x80)
+	{
+		return true;
+	}
+	return false;
+}
+bool InputClass::IsBackPressed() {
+	if (m_keyboardState[DIK_S] & 0x80)
+	{
+		return true;
+	}
+	return false;
+}
 bool InputClass::IsSpaceBarPressed() {
 	if (m_keyboardState[DIK_SPACE] & 0x80)
 	{
