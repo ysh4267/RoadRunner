@@ -250,7 +250,11 @@ void GraphicsClass::PressLeftButton() {
 
 void GraphicsClass::PressRightButton() {
 	if (abs(playerPos.z - playerSystemPos.z) > 0.01f) return;
-	playerSystemPos.x -= 5.0f;
+	playerSystemPos.z -= 5.0f;
+}
+
+void GraphicsClass::PressSpaceButton() {
+
 }
 
 void GraphicsClass::Shutdown()

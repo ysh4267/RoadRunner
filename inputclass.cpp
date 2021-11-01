@@ -226,7 +226,6 @@ bool InputClass::IsLeftPressed() {
 	{
 		return true;
 	}
-
 	return false;
 }
 bool InputClass::IsRightPressed() {
