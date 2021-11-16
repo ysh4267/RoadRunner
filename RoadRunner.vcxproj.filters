@@ -33,9 +33,6 @@
     <ClInclude Include="d3dclass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="DirectXTex.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="fontclass.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -76,6 +73,9 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="timerclass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectXTex.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

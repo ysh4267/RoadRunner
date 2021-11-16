@@ -85,6 +85,8 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	playerModel->CreateSphere(10, 10, m_D3D->GetDevice());
+
 	// Create the map model object.
 	mapModel = new ModelClass;
 	if (!playerModel)
