@@ -13,6 +13,8 @@
 #include "modelclass.h"
 #include "lightshaderclass.h"
 #include "lightclass.h"
+#include "skydomeclass.h"
+#include "skydomeshaderclass.h"
 
 #include "textureshaderclass.h"
 #include "bitmapclass.h"
@@ -74,8 +76,12 @@ private:
 	CameraClass* m_Camera;
 	ModelClass* playerModel;
 	ModelClass* mapModel;
+	ModelClass* mapModel2;
 	ModelClass* objectModel;
 	CarModelInfo carModel[12];
+
+	SkyDomeClass* skyDome;
+	SkyDomeShaderClass* skyDomeShader;
 
 	LightShaderClass* m_LightShader;
 	LightClass* m_Light;
@@ -91,6 +97,8 @@ private:
 
 	XMFLOAT2 playerMinSize;
 	XMFLOAT2 playerMaxSize;
+
+	float mapZpos1, mapZpos2;
 };
 
 #endif

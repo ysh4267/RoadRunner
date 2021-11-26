@@ -14,6 +14,7 @@ D3DClass::D3DClass()
 	m_depthStencilState = 0;
 	m_depthStencilView = 0;
 	m_rasterState = 0;
+	m_rasterStateNoCulling = 0;
 
 	m_depthDisabledStencilState = 0;
 
@@ -327,6 +328,25 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 		return false;
 	}
 
+	// Setup the raster description which will determine how and what polygons will be drawn.
+	rasterDesc.AntialiasedLineEnable = false;
+	rasterDesc.CullMode = D3D11_CULL_NONE;
+	rasterDesc.DepthBias = 0;
+	rasterDesc.DepthBiasClamp = 0.0f;
+	rasterDesc.DepthClipEnable = true;
+	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.FrontCounterClockwise = false;
+	rasterDesc.MultisampleEnable = false;
+	rasterDesc.ScissorEnable = false;
+	rasterDesc.SlopeScaledDepthBias = 0.0f;
+
+	// Create the rasterizer state from the description we just filled out.
+	result = m_device->CreateRasterizerState(&rasterDesc, &m_rasterStateNoCulling);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
 	// Now set the rasterizer state.
 	m_deviceContext->RSSetState(m_rasterState);
 	
@@ -616,6 +636,23 @@ void D3DClass::TurnOffAlphaBlending()
 
 	// Turn off the alpha blending.
 	m_deviceContext->OMSetBlendState(m_alphaDisableBlendingState, blendFactor, 0xffffffff);
+
+	return;
+}
+
+void D3DClass::TurnOnCulling()
+{
+	// Set the culling rasterizer state.
+	m_deviceContext->RSSetState(m_rasterState);
+
+	return;
+}
+
+
+void D3DClass::TurnOffCulling()
+{
+	// Set the no back face culling rasterizer state.
+	m_deviceContext->RSSetState(m_rasterStateNoCulling);
 
 	return;
 }

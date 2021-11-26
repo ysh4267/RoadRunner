@@ -63,14 +63,6 @@ public:
 	bool LoadModel(const WCHAR*);
 	void ReleaseModel();
 
-	void CreateSphere(int, int, ID3D11Device*);
-
-	int NumSphereVertices;
-	int NumSphereFaces;
-
-	XMMATRIX Rotationx;
-	XMMATRIX Rotationy;
-	XMMATRIX Rotationz;
 
 private:
 	bool InitializeBuffers(ID3D11Device*);
@@ -85,8 +77,6 @@ private:
 
 private:
 	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
-	ID3D11Buffer *sphereVertBuffer, *sphereIndexBuffer;
-
 	int m_vertexCount, m_indexCount, m_textureCount, m_normalCount, m_faceCount;
 	TextureClass* m_Texture;
 

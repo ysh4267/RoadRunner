@@ -9,9 +9,13 @@ GraphicsClass::GraphicsClass()
 	m_Camera = 0;
 	playerModel = 0;
 	mapModel = 0;
+	mapModel2 = 0;
 	objectModel = 0;
 	for (int i = 0; i < 12; i++)
 		carModel[i].m_carModel = 0;
+
+	skyDome = 0;
+	skyDomeShader = 0;
 
 	m_LightShader = 0;
 	m_Light = 0;
@@ -26,6 +30,9 @@ GraphicsClass::GraphicsClass()
 
 	playerMaxSize = XMFLOAT2(2.0f, 3.0f);
 	playerMinSize = XMFLOAT2(-2.0f, -3.0f);
+
+	mapZpos1 = 0.0f;
+	mapZpos2 = 100.0f;
 }
 
 
@@ -47,14 +54,14 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 	// Create the Direct3D object.
 	m_D3D = new D3DClass;
-	if(!m_D3D)
+	if (!m_D3D)
 	{
 		return false;
 	}
 
 	// Initialize the Direct3D object.
 	result = m_D3D->Initialize(screenWidth, screenHeight, VSYNC_ENABLED, hwnd, FULL_SCREEN, SCREEN_DEPTH, SCREEN_NEAR);
-	if(!result)
+	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize Direct3D.", L"Error", MB_OK);
 		return false;
@@ -62,7 +69,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 	// Create the camera object.
 	m_Camera = new CameraClass;
-	if(!m_Camera)
+	if (!m_Camera)
 	{
 		return false;
 	}
@@ -85,17 +92,28 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	playerModel->CreateSphere(10, 10, m_D3D->GetDevice());
-
 	// Create the map model object.
 	mapModel = new ModelClass;
-	if (!playerModel)
+	if (!mapModel)
+	{
+		return false;
+	}
+	// Create the map model object.
+	mapModel2 = new ModelClass;
+	if (!mapModel2)
 	{
 		return false;
 	}
 
 	// Initialize the map model object.
 	result = mapModel->Initialize(m_D3D->GetDevice(), L"./data/road.obj", L"./data/road.dds");
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the map model object.", L"Error", MB_OK);
+		return false;
+	}
+	// Initialize the map model object.
+	result = mapModel2->Initialize(m_D3D->GetDevice(), L"./data/road.obj", L"./data/road.dds");
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the map model object.", L"Error", MB_OK);
@@ -190,6 +208,35 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 			return false;
 		}
 
+	}
+
+	skyDome = new SkyDomeClass;
+	if (!skyDome)
+	{
+		return false;
+	}
+
+	// Initialize the sky dome object.
+	result = skyDome->Initialize(m_D3D->GetDevice());
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the sky dome object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the sky dome shader object.
+	skyDomeShader = new SkyDomeShaderClass;
+	if (!skyDomeShader)
+	{
+		return false;
+	}
+
+	// Initialize the sky dome shader object.
+	result = skyDomeShader->Initialize(m_D3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the sky dome shader object.", L"Error", MB_OK);
+		return false;
 	}
 
 	// Create the light shader object.
@@ -297,13 +344,13 @@ void GraphicsClass::PressSpaceButton() {
 }
 
 void GraphicsClass::PressFowardButton() {
-	if (abs(playerPos.z - playerSystemPos.z) > 0.01f) return;
+	//if (abs(playerPos.z - playerSystemPos.z) > 0.01f) return;
 	playerBackPos = playerSystemPos;
 	playerSystemPos.z += 1.0f;
 }
 
 void GraphicsClass::PressBackButton() {
-	if (abs(playerPos.z - playerSystemPos.z) > 0.01f) return;
+	//if (abs(playerPos.z - playerSystemPos.z) > 0.01f) return;
 	playerBackPos = playerSystemPos;
 	playerSystemPos.z -= 1.0f;
 }
@@ -347,6 +394,13 @@ void GraphicsClass::Shutdown()
 		delete mapModel;
 		mapModel = 0;
 	}
+	// Release the map model object.
+	if (mapModel2)
+	{
+		mapModel2->Shutdown();
+		delete mapModel2;
+		mapModel2 = 0;
+	}
 
 	for (int i = 0; i < 12; i++)
 	{
@@ -361,18 +415,33 @@ void GraphicsClass::Shutdown()
 	}
 
 	// Release the camera object.
-	if(m_Camera)
+	if (m_Camera)
 	{
 		delete m_Camera;
 		m_Camera = 0;
 	}
 
 	// Release the D3D object.
-	if(m_D3D)
+	if (m_D3D)
 	{
 		m_D3D->Shutdown();
 		delete m_D3D;
 		m_D3D = 0;
+	}
+
+	if (skyDome)
+	{
+		skyDome->Shutdown();
+		delete skyDome;
+		skyDome = 0;
+	}
+
+	// Release the sky dome object.
+	if (skyDomeShader)
+	{
+		skyDomeShader->Shutdown();
+		delete skyDomeShader;
+		skyDomeShader = 0;
 	}
 
 	// Release the light object.
@@ -389,7 +458,7 @@ void GraphicsClass::Shutdown()
 		delete m_LightShader;
 		m_LightShader = 0;
 	}
-	
+
 	// Release the bitmap object.
 	if (m_Bitmap)
 	{
@@ -425,7 +494,7 @@ bool GraphicsClass::Frame()
 
 	// Render the graphics scene.
 	result = Render(rotation);
-	if(!result)
+	if (!result)
 	{
 		return false;
 	}
@@ -510,9 +579,18 @@ XMFLOAT3 GraphicsClass::XMFLOAT3LERP(XMFLOAT3 movF, XMFLOAT3 targetF, float t) {
 bool GraphicsClass::Render(float rotation)
 {
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
-	XMMATRIX playerWorldMatrix, UIMatrix, UIViewMatrix, mapWorldMatrix;
+	XMMATRIX playerWorldMatrix, UIMatrix, UIViewMatrix, mapWorldMatrix, mapWorldMatrix2, skyDomeMatrix;
+	XMFLOAT3 cameraPosition;
 	bool result;
-	
+
+	float mapSpeed = 0.5f;
+
+	mapZpos1 -= mapSpeed;
+	mapZpos2 -= mapSpeed;
+
+	if (mapZpos1 < -70.0f) mapZpos1 = 120.0f;
+	if (mapZpos2 < -70.0f) mapZpos2 = 120.0f;
+
 	// Clear the buffers to begin the scene.
 	m_D3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 	m_Camera->SetPosition(playerPos.x + 0.0f, playerPos.y + 20.0f, playerPos.z + -13.0f);
@@ -528,9 +606,13 @@ bool GraphicsClass::Render(float rotation)
 	m_D3D->GetWorldMatrix(UIMatrix);
 	m_D3D->GetWorldMatrix(playerWorldMatrix);
 	m_D3D->GetWorldMatrix(mapWorldMatrix);
+	m_D3D->GetWorldMatrix(mapWorldMatrix2);
+	m_D3D->GetWorldMatrix(skyDomeMatrix);
 	m_D3D->GetProjectionMatrix(projectionMatrix);
 
 	m_D3D->GetOrthoMatrix(orthoMatrix);
+
+	cameraPosition = m_Camera->GetPosition();
 
 	if (IsCollision()) {
 		playerSystemPos = playerBackPos;
@@ -538,33 +620,49 @@ bool GraphicsClass::Render(float rotation)
 
 	UIViewMatrix = XMMatrixTranslation(0, 0, m_Camera->GetPosition().z + 30.0f);
 	UIMatrix = XMMatrixRotationRollPitchYaw(XMConvertToRadians(m_Camera->GetRotation().x), XMConvertToRadians(m_Camera->GetRotation().y), XMConvertToRadians(m_Camera->GetRotation().z));
+	playerWorldMatrix = XMMatrixMultiply(XMMatrixTranslation(playerPos.x, playerPos.y, playerPos.z), XMMatrixRotationY(XMConvertToRadians(0)));
+	skyDomeMatrix = XMMatrixTranslation(cameraPosition.x, cameraPosition.y, cameraPosition.z);
 
 	// Turn off the Z buffer to begin all 2D rendering.
 	m_D3D->TurnZBufferOff();
 
-	// Put the bitmap vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	result = m_Bitmap->Render(m_D3D->GetDeviceContext(), 0, -5);
-	if (!result)
-	{
-		return false;
-	}
+	// Turn off back face culling.
+	m_D3D->TurnOffCulling();
 
-	// Render the bitmap with the texture shader.
-	result = m_TextureShader->Render(m_D3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), worldMatrix, UIViewMatrix, orthoMatrix, m_Bitmap->GetTexture());
-	if (!result)
-	{
-		return false;
-	}
+	skyDome->Render(m_D3D->GetDeviceContext());
+	skyDomeShader->Render(m_D3D->GetDeviceContext(), skyDome->GetIndexCount(), skyDomeMatrix, viewMatrix, projectionMatrix,
+		skyDome->GetApexColor(), skyDome->GetCenterColor());
+
+	m_D3D->TurnOnCulling();
 
 	// Turn the Z buffer back on now that all 2D rendering has completed.
 	m_D3D->TurnZBufferOn();
+
+	//// Turn off the Z buffer to begin all 2D rendering.
+	//m_D3D->TurnZBufferOff();
+
+	//// Put the bitmap vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	//result = m_Bitmap->Render(m_D3D->GetDeviceContext(), 0, -5);
+	//if (!result)
+	//{
+	//	return false;
+	//}
+
+	//// Render the bitmap with the texture shader.
+	//result = m_TextureShader->Render(m_D3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), worldMatrix, UIViewMatrix, orthoMatrix, m_Bitmap->GetTexture());
+	//if (!result)
+	//{
+	//	return false;
+	//}
+
+	//// Turn the Z buffer back on now that all 2D rendering has completed.
+	//m_D3D->TurnZBufferOn();
 
 	// Rotate the world matrix by the rotation value so that the triangle will spin.
 	//worldMatrix = XMMatrixRotationY(rotation);
 
 	// Put the player model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	playerModel->Render(m_D3D->GetDeviceContext());
-	playerWorldMatrix = XMMatrixMultiply(XMMatrixTranslation(playerPos.x, playerPos.y, playerPos.z), XMMatrixRotationY(XMConvertToRadians(0)));
 
 	// Render the player model using the light shader.
 	result = m_LightShader->Render(m_D3D->GetDeviceContext(), playerModel->GetIndexCount(),
@@ -579,7 +677,8 @@ bool GraphicsClass::Render(float rotation)
 	}
 
 	// Rotate the world matrix by the rotation value so that the triangle will spin.
-	mapWorldMatrix = XMMatrixTranslation(0.0f, -1.0f, 0.0f);
+	mapWorldMatrix = XMMatrixTranslation(0.0f, -1.0f, mapZpos1);
+	mapWorldMatrix2 = XMMatrixTranslation(0.0f, -1.0f, mapZpos2);
 
 	// Put the map model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	mapModel->Render(m_D3D->GetDeviceContext());
@@ -588,6 +687,24 @@ bool GraphicsClass::Render(float rotation)
 	result = m_LightShader->Render(m_D3D->GetDeviceContext(), mapModel->GetIndexCount(),
 		mapWorldMatrix, viewMatrix, projectionMatrix,
 		mapModel->GetTexture(),
+		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
+		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+
+	if (!result)
+	{
+		return false;
+	}
+
+	// Rotate the world matrix by the rotation value so that the triangle will spin.
+	mapWorldMatrix = XMMatrixTranslation(0.0f, -1.0f, 0.0f);
+
+	// Put the map model vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	mapModel2->Render(m_D3D->GetDeviceContext());
+
+	// Render the map model using the light shader.
+	result = m_LightShader->Render(m_D3D->GetDeviceContext(), mapModel2->GetIndexCount(),
+		mapWorldMatrix2, viewMatrix, projectionMatrix,
+		mapModel2->GetTexture(),
 		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
 		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
 
