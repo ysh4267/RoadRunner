@@ -23,6 +23,10 @@ GraphicsClass::GraphicsClass()
 	m_TextureShader = 0;
 	m_Bitmap = 0;
 
+	fuelImg = 0;
+	whiteBox = 0;
+	redBox = 0;
+
 	m_Text = 0;
 	playerPos = XMFLOAT3(2.2f, 0, 2.0f);
 	playerSystemPos = XMFLOAT3(2.2f, 0, 0);
@@ -33,6 +37,8 @@ GraphicsClass::GraphicsClass()
 
 	mapZpos1 = 0.0f;
 	mapZpos2 = 100.0f;
+	fuelGauge = 0.0f;
+	exSpeed = 0.0f;
 }
 
 
@@ -129,12 +135,12 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 			return false;
 		}
 
-		XMFLOAT2 carMaxSize = XMFLOAT2(2.0f, 3.0f);
-		XMFLOAT2 carMinSize = XMFLOAT2(-2.0f, -3.0f);
-		XMFLOAT2 truckMaxSize = XMFLOAT2(2.0f, 5.0f);
-		XMFLOAT2 truckMinSize = XMFLOAT2(-2.0f, -5.0f);
-		XMFLOAT2 busMaxSize = XMFLOAT2(2.0f, 7.5f);
-		XMFLOAT2 busMinSize = XMFLOAT2(-2.0f, -7.5f);
+		XMFLOAT2 carMaxSize = XMFLOAT2(2.0f, 2.5f);
+		XMFLOAT2 carMinSize = XMFLOAT2(-2.0f, -2.5f);
+		XMFLOAT2 truckMaxSize = XMFLOAT2(2.0f, 4.5f);
+		XMFLOAT2 truckMinSize = XMFLOAT2(-2.0f, -4.5f);
+		XMFLOAT2 busMaxSize = XMFLOAT2(2.0f, 7.0f);
+		XMFLOAT2 busMinSize = XMFLOAT2(-2.0f, -7.0f);
 
 		// Initialize the car model object.
 		switch (i)
@@ -303,6 +309,52 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	// Create the bitmap object.
+	fuelImg = new BitmapClass;
+	if (!fuelImg)
+	{
+		return false;
+	}
+
+	// Initialize the bitmap object.
+	result = fuelImg->Initialize(m_D3D->GetDevice(), screenWidth, screenHeight, L"./data/fuel.dds", 100, 100);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the bitmap object.
+	redBox = new BitmapClass;
+	if (!redBox)
+	{
+		return false;
+	}
+
+	// Initialize the bitmap object.
+	result = redBox->Initialize(m_D3D->GetDevice(), screenWidth, screenHeight, L"./data/red.dds", 300, 30);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the bitmap object.
+	whiteBox = new BitmapClass;
+	if (!whiteBox)
+	{
+		return false;
+	}
+
+	// Initialize the bitmap object.
+	result = whiteBox->Initialize(m_D3D->GetDevice(), screenWidth, screenHeight, L"./data/white.dds", 500, 30);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
+		return false;
+	}
+
+
 	// Initialize a base view matrix with the camera for 2D user interface rendering.
 	m_Camera->SetPosition(playerPos.x + 0.0f, playerPos.y + 20.0f, playerPos.z + -13.0f);
 	m_Camera->SetRotation(45.0f, 0.0f, 0.0f);
@@ -324,35 +376,44 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	InitCarObjectPos();
+
+	std::srand(static_cast<unsigned int>(std::time(0)));
+
 	return true;
 }
 
 void GraphicsClass::PressLeftButton() {
-	if (abs(playerPos.x - playerSystemPos.x) > 0.01f) return;
+	if (abs(playerPos.x - playerSystemPos.x) > 0.6f) return;
+	if (playerSystemPos.x < -7.0) return;
+
 	playerBackPos = playerSystemPos;
 	playerSystemPos.x += -5.0f;
 }
 
 void GraphicsClass::PressRightButton() {
-	if (abs(playerPos.x - playerSystemPos.x) > 0.01f) return;
+	if (abs(playerPos.x - playerSystemPos.x) > 0.6f) return;
+	if (playerSystemPos.x > 7.0) return;
+
 	playerBackPos = playerSystemPos;
 	playerSystemPos.x += 5.0f;
 }
 
 void GraphicsClass::PressSpaceButton() {
-
+	if (fuelGauge < 499) return;
+	usingBooster = true;
 }
 
 void GraphicsClass::PressFowardButton() {
 	//if (abs(playerPos.z - playerSystemPos.z) > 0.01f) return;
-	playerBackPos = playerSystemPos;
-	playerSystemPos.z += 1.0f;
+	//playerBackPos = playerSystemPos;
+	//playerSystemPos.z += 1.0f;
 }
 
 void GraphicsClass::PressBackButton() {
 	//if (abs(playerPos.z - playerSystemPos.z) > 0.01f) return;
-	playerBackPos = playerSystemPos;
-	playerSystemPos.z -= 1.0f;
+	//playerBackPos = playerSystemPos;
+	//playerSystemPos.z -= 1.0f;
 }
 
 bool GraphicsClass::CheckCubeIntersection(XMFLOAT2* vMin1, XMFLOAT2* vMax1, XMFLOAT2* vMin2, XMFLOAT2* vMax2)
@@ -467,6 +528,30 @@ void GraphicsClass::Shutdown()
 		m_Bitmap = 0;
 	}
 
+	// Release the bitmap object.
+	if (fuelImg)
+	{
+		fuelImg->Shutdown();
+		delete fuelImg;
+		fuelImg = 0;
+	}
+
+	// Release the bitmap object.
+	if (redBox)
+	{
+		redBox->Shutdown();
+		delete redBox;
+		redBox = 0;
+	}
+
+	// Release the bitmap object.
+	if (whiteBox)
+	{
+		whiteBox->Shutdown();
+		delete whiteBox;
+		whiteBox = 0;
+	}
+
 	// Release the texture shader object.
 	if (m_TextureShader)
 	{
@@ -576,6 +661,40 @@ XMFLOAT3 GraphicsClass::XMFLOAT3LERP(XMFLOAT3 movF, XMFLOAT3 targetF, float t) {
 	return XMFLOAT3(movF.x * (1.0f - t) + (targetF.x * t), movF.y * (1.0f - t) + (targetF.y * t), movF.z * (1.0f - t) + (targetF.z * t));
 }
 
+void GraphicsClass::InitCarObjectPos() {
+	//-7.8, -2.8, 2.2, 7.2
+	for (int i = 0; i < 12; i++)
+	{
+		carModel[i].worldPosition.x = -7.8f;
+		carModel[i].worldPosition.y = -50.0f;
+	}
+
+	carModel[0].worldPosition.x = -7.8f;
+	carModel[0].worldPosition.y = 4.0f;
+	carModel[1].worldPosition.x = -2.8f;
+	carModel[1].worldPosition.y = 125.0f;
+	carModel[2].worldPosition.x = 7.2f;
+	carModel[2].worldPosition.y = 91.0f;
+	carModel[3].worldPosition.x = 2.2f;
+	carModel[3].worldPosition.y = 104.0f;
+	carModel[4].worldPosition.x = -2.8f;
+	carModel[4].worldPosition.y = 76.0f;
+	carModel[5].worldPosition.x = 2.2f;
+	carModel[5].worldPosition.y = 29.0f;
+	carModel[6].worldPosition.x = -7.8f;
+	carModel[6].worldPosition.y = 59.0f;
+	carModel[7].worldPosition.x = -2.8f;
+	carModel[7].worldPosition.y = 35.0f;
+	carModel[8].worldPosition.x = -7.8f;
+	carModel[8].worldPosition.y = 99.0f;
+	carModel[9].worldPosition.x = -7.8f;
+	carModel[9].worldPosition.y = 8.0f;
+	carModel[10].worldPosition.x = 2.2f;
+	carModel[10].worldPosition.y = 134.0f;
+	carModel[11].worldPosition.x = 7.2f;
+	carModel[11].worldPosition.y = 71.0f;
+}
+
 bool GraphicsClass::Render(float rotation)
 {
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
@@ -583,13 +702,35 @@ bool GraphicsClass::Render(float rotation)
 	XMFLOAT3 cameraPosition;
 	bool result;
 
-	float mapSpeed = 0.5f;
+	mapSpeed = 0.5f;
+	carObjectSpeed = 0.2f;
 
-	mapZpos1 -= mapSpeed;
-	mapZpos2 -= mapSpeed;
+	mapZpos1 -= (mapSpeed + exSpeed);
+	mapZpos2 -= (mapSpeed + exSpeed);
 
 	if (mapZpos1 < -70.0f) mapZpos1 = 120.0f;
 	if (mapZpos2 < -70.0f) mapZpos2 = 120.0f;
+
+	if (usingBooster) 
+	{
+		fuelGauge -= 2;
+		if (fuelGauge <= 0)
+		{
+			fuelGauge = 0.0f;
+			usingBooster = false;
+		}
+	}
+	else if (fuelGauge >= 500) 
+	{ 
+		fuelGauge = 500; 
+	}
+	else 
+	{
+		fuelGauge++; 
+	}
+
+	if (usingBooster) exSpeed = 0.5f;
+	else exSpeed = 0.0f;
 
 	// Clear the buffers to begin the scene.
 	m_D3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
@@ -637,26 +778,6 @@ bool GraphicsClass::Render(float rotation)
 
 	// Turn the Z buffer back on now that all 2D rendering has completed.
 	m_D3D->TurnZBufferOn();
-
-	//// Turn off the Z buffer to begin all 2D rendering.
-	//m_D3D->TurnZBufferOff();
-
-	//// Put the bitmap vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	//result = m_Bitmap->Render(m_D3D->GetDeviceContext(), 0, -5);
-	//if (!result)
-	//{
-	//	return false;
-	//}
-
-	//// Render the bitmap with the texture shader.
-	//result = m_TextureShader->Render(m_D3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), worldMatrix, UIViewMatrix, orthoMatrix, m_Bitmap->GetTexture());
-	//if (!result)
-	//{
-	//	return false;
-	//}
-
-	//// Turn the Z buffer back on now that all 2D rendering has completed.
-	//m_D3D->TurnZBufferOn();
 
 	// Rotate the world matrix by the rotation value so that the triangle will spin.
 	//worldMatrix = XMMatrixRotationY(rotation);
@@ -717,7 +838,8 @@ bool GraphicsClass::Render(float rotation)
 	{
 		// Put the map model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 		carModel[i].m_carModel->Render(m_D3D->GetDeviceContext());
-		carModel[i].worldPosition = XMFLOAT2(-2.5f + -5.0f * i, i * 3.0f);
+		carModel[i].worldPosition = XMFLOAT2(carModel[i].worldPosition.x, carModel[i].worldPosition.y - (carObjectSpeed + exSpeed));
+		if (carModel[i].worldPosition.y < -20) carModel[i].worldPosition.y = 140.0f;
 		carModel[i].worldMatrix = XMMatrixMultiply(XMMatrixTranslation(carModel[i].worldPosition.x, 0, carModel[i].worldPosition.y), XMMatrixRotationY(XMConvertToRadians(0.0f)));
 		carModel[i].maxPosSize = XMFLOAT2SUM(carModel[i].maxSize, carModel[i].worldPosition);
 		carModel[i].minPosSize = XMFLOAT2SUM(carModel[i].minSize, carModel[i].worldPosition);
@@ -747,8 +869,70 @@ bool GraphicsClass::Render(float rotation)
 		return false;
 	}
 
+	UIViewMatrix = XMMatrixTranslation(75, 0, -55);
+
 	// Turn off alpha blending after rendering the text.
 	m_D3D->TurnOffAlphaBlending();
+
+	// Put the bitmap vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	result = whiteBox->Render(m_D3D->GetDeviceContext(), 0, -5);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Render the bitmap with the texture shader.
+	result = m_TextureShader->Render(m_D3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), UIViewMatrix, UIViewMatrix * UIMatrix, orthoMatrix, whiteBox->GetTexture());
+	if (!result)
+	{
+		return false;
+	}
+
+	// Create the bitmap object.
+	redBox = new BitmapClass;
+	if (!redBox)
+	{
+		return false;
+	}
+
+	// Initialize the bitmap object.
+	result = redBox->Initialize(m_D3D->GetDevice(), 800, 600, L"./data/red.dds", fuelGauge, 30);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Put the bitmap vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	result = redBox->Render(m_D3D->GetDeviceContext(), 0, -5);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Render the bitmap with the texture shader.
+	result = m_TextureShader->Render(m_D3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), UIViewMatrix, UIViewMatrix * UIMatrix, orthoMatrix, redBox->GetTexture());
+	if (!result)
+	{
+		return false;
+	}
+
+	//// Put the bitmap vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	//result = fuelImg->Render(m_D3D->GetDeviceContext(), 0, -5);
+	//if (!result)
+	//{
+	//	return false;
+	//}
+
+	//// Render the bitmap with the texture shader.
+	//result = m_TextureShader->Render(m_D3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), UIViewMatrix, UIViewMatrix * UIMatrix, orthoMatrix, fuelImg->GetTexture());
+	//if (!result)
+	//{
+	//	return false;
+	//}
+
+	redBox->Shutdown();
+	delete redBox;
+	redBox = 0;
 
 	// Turn the Z buffer back on now that all 2D rendering has completed.
 	m_D3D->TurnZBufferOn();

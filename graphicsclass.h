@@ -20,6 +20,7 @@
 #include "bitmapclass.h"
 #include "textclass.h"
 
+
 /////////////
 // GLOBALS //
 /////////////
@@ -69,6 +70,7 @@ public:
 	XMFLOAT2 XMFLOAT2SUM(XMFLOAT2, XMFLOAT2);
 
 private:
+	void InitCarObjectPos();
 	bool Render(float);
 
 private:
@@ -88,6 +90,9 @@ private:
 
 	TextureShaderClass* m_TextureShader;
 	BitmapClass* m_Bitmap;
+	BitmapClass* fuelImg;
+	BitmapClass* whiteBox;
+	BitmapClass* redBox;
 
 	TextClass* m_Text;
 
@@ -99,6 +104,11 @@ private:
 	XMFLOAT2 playerMaxSize;
 
 	float mapZpos1, mapZpos2;
+	float fuelGauge;
+	bool usingBooster;
+	float mapSpeed = 0.5f;
+	float carObjectSpeed = 0.2f;
+	float exSpeed = 0.0f;
 };
 
 #endif
