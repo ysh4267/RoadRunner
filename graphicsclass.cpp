@@ -36,7 +36,7 @@ GraphicsClass::GraphicsClass()
 	playerMinSize = XMFLOAT2(-2.0f, -3.0f);
 
 	mapZpos1 = 0.0f;
-	mapZpos2 = 100.0f;
+	mapZpos2 = 98.0f;
 	fuelGauge = 0.0f;
 	exSpeed = 0.0f;
 }
@@ -130,7 +130,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	{
 		// Create the car model object.
 		carModel[i].m_carModel = new ModelClass;
-		if (!playerModel)
+		if (!carModel[i].m_carModel)
 		{
 			return false;
 		}
@@ -213,7 +213,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 			MessageBox(hwnd, L"Could not initialize the car model object.", L"Error", MB_OK);
 			return false;
 		}
-
+		carModel[i].isFlying = false;
 	}
 
 	skyDome = new SkyDomeClass;
@@ -425,8 +425,9 @@ bool GraphicsClass::CheckCubeIntersection(XMFLOAT2* vMin1, XMFLOAT2* vMax1, XMFL
 }
 
 bool GraphicsClass::IsCollision() {
-	for (auto object : carModel) {
+	for (auto &object : carModel) {
 		if (CheckCubeIntersection(new XMFLOAT2(playerPos.x - 1.0f, playerPos.z - 2.5f), new XMFLOAT2(playerPos.x + 1.0f, playerPos.z + 2.5f), &object.minPosSize, &object.maxPosSize)) {
+			object.isFlying = true;
 			return true;
 		}
 	}
@@ -614,6 +615,27 @@ bool GraphicsClass::Frame(int fps, int cpu, float frameTime)
 		return false;
 	}
 
+	// Set the cpu usage.
+	result = m_Text->Score(cpu, m_D3D->GetDeviceContext());
+	if (!result)
+	{
+		return false;
+	}
+
+	// Set the cpu usage.
+	result = m_Text->Life(cpu, m_D3D->GetDeviceContext());
+	if (!result)
+	{
+		return false;
+	}
+
+	// Set the cpu usage.
+	result = m_Text->ObjectNum(cpu, m_D3D->GetDeviceContext());
+	if (!result)
+	{
+		return false;
+	}
+
 	// Render the graphics scene.
 	result = Render(rotation);
 	if (!result)
@@ -670,7 +692,7 @@ void GraphicsClass::InitCarObjectPos() {
 	}
 
 	carModel[0].worldPosition.x = -7.8f;
-	carModel[0].worldPosition.y = 4.0f;
+	carModel[0].worldPosition.y = 44.0f;
 	carModel[1].worldPosition.x = -2.8f;
 	carModel[1].worldPosition.y = 125.0f;
 	carModel[2].worldPosition.x = 7.2f;
@@ -701,15 +723,15 @@ bool GraphicsClass::Render(float rotation)
 	XMMATRIX playerWorldMatrix, UIMatrix, UIViewMatrix, mapWorldMatrix, mapWorldMatrix2, skyDomeMatrix;
 	XMFLOAT3 cameraPosition;
 	bool result;
-
+	rotation += (float)XM_PI;
 	mapSpeed = 0.5f;
 	carObjectSpeed = 0.2f;
 
 	mapZpos1 -= (mapSpeed + exSpeed);
 	mapZpos2 -= (mapSpeed + exSpeed);
 
-	if (mapZpos1 < -70.0f) mapZpos1 = 120.0f;
-	if (mapZpos2 < -70.0f) mapZpos2 = 120.0f;
+	if (mapZpos1 < -70.0f) mapZpos1 = 126.0f;
+	if (mapZpos2 < -70.0f) mapZpos2 = 126.0f;
 
 	if (usingBooster) 
 	{
@@ -756,7 +778,7 @@ bool GraphicsClass::Render(float rotation)
 	cameraPosition = m_Camera->GetPosition();
 
 	if (IsCollision()) {
-		playerSystemPos = playerBackPos;
+		//playerSystemPos = playerBackPos;
 	}
 
 	UIViewMatrix = XMMatrixTranslation(0, 0, m_Camera->GetPosition().z + 30.0f);
@@ -839,8 +861,22 @@ bool GraphicsClass::Render(float rotation)
 		// Put the map model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 		carModel[i].m_carModel->Render(m_D3D->GetDeviceContext());
 		carModel[i].worldPosition = XMFLOAT2(carModel[i].worldPosition.x, carModel[i].worldPosition.y - (carObjectSpeed + exSpeed));
-		if (carModel[i].worldPosition.y < -20) carModel[i].worldPosition.y = 140.0f;
-		carModel[i].worldMatrix = XMMatrixMultiply(XMMatrixTranslation(carModel[i].worldPosition.x, 0, carModel[i].worldPosition.y), XMMatrixRotationY(XMConvertToRadians(0.0f)));
+		if (carModel[i].worldPosition.y < -20) { 
+			carModel[i].worldPosition.y = 140.0f; 
+			carModel[i].isFlying = false;
+			carModel[i].flyingPosition.x = 0.0f;
+			carModel[i].flyingPosition.y = 0.0f;
+		}
+		if (carModel[i].isFlying) {
+			float Temp = 1.0f;
+			if (carModel[i].worldPosition.x < 0) Temp = -1.0f;
+			carModel[i].flyingPosition.x += Temp;
+			carModel[i].flyingPosition.y += 1.0f;
+			carModel[i].worldMatrix = XMMatrixMultiply(XMMatrixRotationZ(XMConvertToRadians(75 * -Temp)), XMMatrixTranslation(carModel[i].worldPosition.x + carModel[i].flyingPosition.x, carModel[i].flyingPosition.y, carModel[i].worldPosition.y));
+		}
+		else {
+			carModel[i].worldMatrix = XMMatrixMultiply(XMMatrixTranslation(carModel[i].worldPosition.x + carModel[i].flyingPosition.x, carModel[i].flyingPosition.y, carModel[i].worldPosition.y), XMMatrixRotationY(XMConvertToRadians(0.0f)));
+		}
 		carModel[i].maxPosSize = XMFLOAT2SUM(carModel[i].maxSize, carModel[i].worldPosition);
 		carModel[i].minPosSize = XMFLOAT2SUM(carModel[i].minSize, carModel[i].worldPosition);
 		// Render the map model using the light shader.

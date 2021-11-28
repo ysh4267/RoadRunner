@@ -40,11 +40,13 @@ private:
 	{
 		ModelClass* m_carModel;
 		XMFLOAT2 worldPosition;
+		XMFLOAT2 flyingPosition;
 		XMMATRIX worldMatrix;
 		XMFLOAT2 maxSize;
 		XMFLOAT2 minSize;
 		XMFLOAT2 maxPosSize;
 		XMFLOAT2 minPosSize;
+		bool isFlying;
 	};
 	
 public:

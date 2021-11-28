@@ -40,6 +40,9 @@ public:
 	bool Render(ID3D11DeviceContext*, XMMATRIX, XMMATRIX);
 	bool SetFps(int, ID3D11DeviceContext*);
 	bool SetCpu(int, ID3D11DeviceContext*);
+	bool Score(int, ID3D11DeviceContext*);
+	bool ObjectNum(int, ID3D11DeviceContext*);
+	bool Life(int, ID3D11DeviceContext*);
 	bool SetMousePosition(int, int, ID3D11DeviceContext*);
 
 private:
@@ -55,6 +58,9 @@ private:
 	XMMATRIX m_baseViewMatrix;
 	SentenceType* m_sentence1;
 	SentenceType* m_sentence2;
+	SentenceType* m_sentence3;
+	SentenceType* m_sentence4;
+	SentenceType* m_sentence5;
 };
 
 #endif

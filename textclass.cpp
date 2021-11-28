@@ -95,6 +95,27 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 		return false;
 	}
 
+	// Initialize the first sentence.
+	result = InitializeSentence(&m_sentence3, 24, device);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Initialize the first sentence.
+	result = InitializeSentence(&m_sentence4, 24, device);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Initialize the first sentence.
+	result = InitializeSentence(&m_sentence5, 24, device);
+	if (!result)
+	{
+		return false;
+	}
+
 	return true;
 }
 
@@ -106,6 +127,15 @@ void TextClass::Shutdown()
 
 	// Release the second sentence.
 	ReleaseSentence(&m_sentence2);
+
+	// Release the second sentence.
+	ReleaseSentence(&m_sentence3);
+
+	// Release the second sentence.
+	ReleaseSentence(&m_sentence4);
+
+	// Release the second sentence.
+	ReleaseSentence(&m_sentence5);
 
 	// Release the font shader object.
 	if(m_FontShader)
@@ -142,6 +172,29 @@ bool TextClass::Render(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix,
 	// Draw the second sentence.
 	result = RenderSentence(deviceContext, m_sentence2, worldMatrix, orthoMatrix);
 	if(!result)
+	{
+		return false;
+	}
+
+	// Draw the second sentence.
+	result = RenderSentence(deviceContext, m_sentence3, worldMatrix, orthoMatrix);
+	if (!result)
+	{
+		return false;
+	}
+
+
+	// Draw the second sentence.
+	result = RenderSentence(deviceContext, m_sentence4, worldMatrix, orthoMatrix);
+	if (!result)
+	{
+		return false;
+	}
+
+
+	// Draw the second sentence.
+	result = RenderSentence(deviceContext, m_sentence5, worldMatrix, orthoMatrix);
+	if (!result)
 	{
 		return false;
 	}
@@ -464,6 +517,78 @@ bool TextClass::SetCpu(int cpu, ID3D11DeviceContext* deviceContext)
 	return true;
 }
 
+bool TextClass::Score(int score, ID3D11DeviceContext* deviceContext)
+{
+	char tempString[24];
+	char cpuString[24];
+	bool result;
+
+
+	// Convert the cpu integer to string format.
+	_itoa_s(score, tempString, 10);
+
+	// Setup the cpu string.
+	strcpy_s(cpuString, "Score: ");
+	strcat_s(cpuString, tempString);
+
+	// Update the sentence vertex buffer with the new string information.
+	result = UpdateSentence(m_sentence3, cpuString, 20, 60, 0.0f, 1.0f, 0.0f, deviceContext);
+	if (!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool TextClass::ObjectNum(int objectNum, ID3D11DeviceContext* deviceContext)
+{
+	char tempString[24];
+	char cpuString[24];
+	bool result;
+
+
+	// Convert the cpu integer to string format.
+	_itoa_s(objectNum, tempString, 10);
+
+	// Setup the cpu string.
+	strcpy_s(cpuString, "Object Count: ");
+	strcat_s(cpuString, tempString);
+
+	// Update the sentence vertex buffer with the new string information.
+	result = UpdateSentence(m_sentence4, cpuString, 20, 80, 0.0f, 1.0f, 0.0f, deviceContext);
+	if (!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool TextClass::Life(int life, ID3D11DeviceContext* deviceContext)
+{
+	char tempString[24];
+	char cpuString[24];
+	bool result;
+
+
+	// Convert the cpu integer to string format.
+	_itoa_s(life, tempString, 10);
+
+	// Setup the cpu string.
+	strcpy_s(cpuString, "Life: ");
+	strcat_s(cpuString, tempString);
+	strcat_s(cpuString, " / 3");
+
+	// Update the sentence vertex buffer with the new string information.
+	result = UpdateSentence(m_sentence5, cpuString, 20, 100, 0.0f, 1.0f, 0.0f, deviceContext);
+	if (!result)
+	{
+		return false;
+	}
+
+	return true;
+}
 
 bool TextClass::SetMousePosition(int mouseX, int mouseY, ID3D11DeviceContext* deviceContext)
 {
