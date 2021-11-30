@@ -111,6 +111,11 @@ private:
 	float mapSpeed = 0.5f;
 	float carObjectSpeed = 0.2f;
 	float exSpeed = 0.0f;
+	float score = 0.0f;
+	int objectNum = 0;
+	int life = 3;
+
+	float invincibility = 0;
 };
 
 #endif

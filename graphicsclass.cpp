@@ -427,6 +427,7 @@ bool GraphicsClass::CheckCubeIntersection(XMFLOAT2* vMin1, XMFLOAT2* vMax1, XMFL
 bool GraphicsClass::IsCollision() {
 	for (auto &object : carModel) {
 		if (CheckCubeIntersection(new XMFLOAT2(playerPos.x - 1.0f, playerPos.z - 2.5f), new XMFLOAT2(playerPos.x + 1.0f, playerPos.z + 2.5f), &object.minPosSize, &object.maxPosSize)) {
+			if (!usingBooster) return true;
 			object.isFlying = true;
 			return true;
 		}
@@ -616,21 +617,21 @@ bool GraphicsClass::Frame(int fps, int cpu, float frameTime)
 	}
 
 	// Set the cpu usage.
-	result = m_Text->Score(cpu, m_D3D->GetDeviceContext());
+	result = m_Text->Score(score, m_D3D->GetDeviceContext());
 	if (!result)
 	{
 		return false;
 	}
 
 	// Set the cpu usage.
-	result = m_Text->Life(cpu, m_D3D->GetDeviceContext());
+	result = m_Text->Life(life, m_D3D->GetDeviceContext());
 	if (!result)
 	{
 		return false;
 	}
 
 	// Set the cpu usage.
-	result = m_Text->ObjectNum(cpu, m_D3D->GetDeviceContext());
+	result = m_Text->ObjectNum(objectNum, m_D3D->GetDeviceContext());
 	if (!result)
 	{
 		return false;
@@ -726,9 +727,10 @@ bool GraphicsClass::Render(float rotation)
 	rotation += (float)XM_PI;
 	mapSpeed = 0.5f;
 	carObjectSpeed = 0.2f;
-
+	score += (mapSpeed + exSpeed) / 10;
 	mapZpos1 -= (mapSpeed + exSpeed);
 	mapZpos2 -= (mapSpeed + exSpeed);
+	objectNum = 0;
 
 	if (mapZpos1 < -70.0f) mapZpos1 = 126.0f;
 	if (mapZpos2 < -70.0f) mapZpos2 = 126.0f;
@@ -776,9 +778,16 @@ bool GraphicsClass::Render(float rotation)
 	m_D3D->GetOrthoMatrix(orthoMatrix);
 
 	cameraPosition = m_Camera->GetPosition();
+	invincibility -= 1f;
 
 	if (IsCollision()) {
-		//playerSystemPos = playerBackPos;
+		if (!usingBooster) {
+			playerSystemPos = playerBackPos;
+			if (invincibility < 0) {
+				invincibility = 300;
+				life--;
+			}
+		}
 	}
 
 	UIViewMatrix = XMMatrixTranslation(0, 0, m_Camera->GetPosition().z + 30.0f);
@@ -818,11 +827,12 @@ bool GraphicsClass::Render(float rotation)
 	{
 		return false;
 	}
+	objectNum++;
 
 	// Rotate the world matrix by the rotation value so that the triangle will spin.
 	mapWorldMatrix = XMMatrixTranslation(0.0f, -1.0f, mapZpos1);
 	mapWorldMatrix2 = XMMatrixTranslation(0.0f, -1.0f, mapZpos2);
-
+	
 	// Put the map model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	mapModel->Render(m_D3D->GetDeviceContext());
 
@@ -837,7 +847,7 @@ bool GraphicsClass::Render(float rotation)
 	{
 		return false;
 	}
-
+	objectNum++;
 	// Rotate the world matrix by the rotation value so that the triangle will spin.
 	mapWorldMatrix = XMMatrixTranslation(0.0f, -1.0f, 0.0f);
 
@@ -855,7 +865,7 @@ bool GraphicsClass::Render(float rotation)
 	{
 		return false;
 	}
-
+	objectNum++;
 	for (int i = 0; i < 12; i++)
 	{
 		// Put the map model vertex and index buffers on the graphics pipeline to prepare them for drawing.
@@ -890,6 +900,8 @@ bool GraphicsClass::Render(float rotation)
 		{
 			return false;
 		}
+
+		objectNum++;
 	}
 
 	// Turn off the Z buffer to begin all 2D rendering.
