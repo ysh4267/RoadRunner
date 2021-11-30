@@ -269,11 +269,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 	// Initialize the light object.
 	m_Light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
-	//	m_Light->SetAmbientColor(0.0f, 0.0f, 0.0f, 1.0f);
 	m_Light->SetDiffuseColor(0.5f, 0.5f, 0.5f, 1.0f);
-	//	m_Light->SetDiffuseColor(0.0f, 0.0f, 0.0f, 1.0f);
-	//	m_Light->SetDirection(0.0f, 0.0f, 1.0f);
-	//	m_Light->SetDirection(1.0f, 0.0f, 0.0f);
 	m_Light->SetDirection(1.0f, -1.0f, 0.0f);
 	m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_Light->SetSpecularPower(32.0f);
@@ -721,6 +717,8 @@ bool GraphicsClass::Render(float rotation)
 {
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
 	XMMATRIX playerWorldMatrix, UIMatrix, UIViewMatrix, mapWorldMatrix, mapWorldMatrix2, skyDomeMatrix;
+	XMFLOAT4 diffuseColor[4];
+	XMFLOAT4 lightPosition[4];
 	XMFLOAT3 cameraPosition;
 	bool result;
 	rotation += (float)XM_PI;
@@ -786,6 +784,17 @@ bool GraphicsClass::Render(float rotation)
 	playerWorldMatrix = XMMatrixMultiply(XMMatrixTranslation(playerPos.x, playerPos.y, playerPos.z), XMMatrixRotationY(XMConvertToRadians(0)));
 	skyDomeMatrix = XMMatrixTranslation(cameraPosition.x, cameraPosition.y, cameraPosition.z);
 
+	diffuseColor[0] = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+	diffuseColor[1] = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
+	diffuseColor[2] = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
+	diffuseColor[3] = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+
+	lightPosition[0] = XMFLOAT4(-3.0f, 1.0f, 3.0f, 1.0f);
+	lightPosition[1] = XMFLOAT4(3.0f, 1.0f, 3.0f, 1.0f);
+	lightPosition[2] = XMFLOAT4(-3.0f, 1.0f, -3.0f, 1.0f);
+	lightPosition[3] = XMFLOAT4(3.0f, 1.0f, -3.0f, 1.0f);
+
+
 	// Turn off the Z buffer to begin all 2D rendering.
 	m_D3D->TurnZBufferOff();
 
@@ -812,7 +821,7 @@ bool GraphicsClass::Render(float rotation)
 		playerWorldMatrix, viewMatrix, projectionMatrix,
 		playerModel->GetTexture(),
 		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
-		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower(), diffuseColor, lightPosition);
 
 	if (!result)
 	{
@@ -831,7 +840,7 @@ bool GraphicsClass::Render(float rotation)
 		mapWorldMatrix, viewMatrix, projectionMatrix,
 		mapModel->GetTexture(),
 		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
-		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower(), diffuseColor, lightPosition);
 
 	if (!result)
 	{
@@ -849,7 +858,7 @@ bool GraphicsClass::Render(float rotation)
 		mapWorldMatrix2, viewMatrix, projectionMatrix,
 		mapModel2->GetTexture(),
 		m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
-		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower(), diffuseColor, lightPosition);
 
 	if (!result)
 	{
@@ -884,7 +893,7 @@ bool GraphicsClass::Render(float rotation)
 			carModel[i].worldMatrix, viewMatrix, projectionMatrix,
 			carModel[i].m_carModel->GetTexture(),
 			m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(),
-			m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+			m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower(), diffuseColor, lightPosition);
 
 		if (!result)
 		{
