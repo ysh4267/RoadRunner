@@ -59,6 +59,7 @@ public:
 	bool Frame();
 	bool Frame(int, int, float);
 	bool Frame(int, int);
+	void ResetGame();
 
 public:
 	void PressLeftButton();
@@ -93,6 +94,9 @@ private:
 	TextureShaderClass* m_TextureShader;
 	BitmapClass* m_Bitmap;
 	BitmapClass* fuelImg;
+	BitmapClass* gameStartImg;
+	BitmapClass* gameOverImg;
+	BitmapClass* gameClearImg;
 	BitmapClass* whiteBox;
 	BitmapClass* redBox;
 
@@ -116,6 +120,10 @@ private:
 	int life = 3;
 
 	float invincibility = 0;
+
+	bool isGameOver;
+	bool isGameStart;
+	bool isGameClear;
 };
 
 #endif

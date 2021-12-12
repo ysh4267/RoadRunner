@@ -27,6 +27,10 @@ GraphicsClass::GraphicsClass()
 	whiteBox = 0;
 	redBox = 0;
 
+	gameClearImg = 0;
+	gameOverImg = 0;
+	gameStartImg = 0;
+
 	m_Text = 0;
 	playerPos = XMFLOAT3(2.2f, 0, 2.0f);
 	playerSystemPos = XMFLOAT3(2.2f, 0, 0);
@@ -39,6 +43,11 @@ GraphicsClass::GraphicsClass()
 	mapZpos2 = 98.0f;
 	fuelGauge = 0.0f;
 	exSpeed = 0.0f;
+
+
+	isGameOver = false;
+	isGameStart = false;
+	isGameClear = false;
 }
 
 
@@ -354,6 +363,50 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	// Create the bitmap object.
+	gameStartImg = new BitmapClass;
+	if (!gameStartImg)
+	{
+		return false;
+	}
+
+	// Initialize the bitmap object.
+	result = gameStartImg->Initialize(m_D3D->GetDevice(), screenWidth, screenHeight, L"./data/gameStart.dds", 800, 600);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the bitmap object.
+	gameOverImg = new BitmapClass;
+	if (!gameOverImg)
+	{
+		return false;
+	}
+
+	// Initialize the bitmap object.
+	result = gameOverImg->Initialize(m_D3D->GetDevice(), screenWidth, screenHeight, L"./data/gameOver.dds", 800, 600);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the bitmap object.
+	gameClearImg = new BitmapClass;
+	if (!gameClearImg)
+	{
+		return false;
+	}
+
+	// Initialize the bitmap object.
+	result = gameClearImg->Initialize(m_D3D->GetDevice(), screenWidth, screenHeight, L"./data/gameClear.dds", 800, 600);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
+		return false;
+	}
 
 	// Initialize a base view matrix with the camera for 2D user interface rendering.
 	m_Camera->SetPosition(playerPos.x + 0.0f, playerPos.y + 20.0f, playerPos.z + -13.0f);
@@ -400,11 +453,19 @@ void GraphicsClass::PressRightButton() {
 }
 
 void GraphicsClass::PressSpaceButton() {
+	if (!isGameStart || isGameClear || isGameOver) { 
+		isGameStart = true; 
+		isGameClear = false;
+		isGameOver = false;
+		ResetGame();
+		return;
+	}
 	if (fuelGauge < 499) return;
 	usingBooster = true;
 }
 
 void GraphicsClass::PressFowardButton() {
+	ResetGame();
 	//if (abs(playerPos.z - playerSystemPos.z) > 0.01f) return;
 	//playerBackPos = playerSystemPos;
 	//playerSystemPos.z += 1.0f;
@@ -425,7 +486,7 @@ bool GraphicsClass::CheckCubeIntersection(XMFLOAT2* vMin1, XMFLOAT2* vMax1, XMFL
 }
 
 bool GraphicsClass::IsCollision() {
-	for (auto &object : carModel) {
+	for (auto& object : carModel) {
 		if (CheckCubeIntersection(new XMFLOAT2(playerPos.x - 1.0f, playerPos.z - 2.5f), new XMFLOAT2(playerPos.x + 1.0f, playerPos.z + 2.5f), &object.minPosSize, &object.maxPosSize)) {
 			if (!usingBooster) return true;
 			object.isFlying = true;
@@ -528,6 +589,30 @@ void GraphicsClass::Shutdown()
 		m_Bitmap->Shutdown();
 		delete m_Bitmap;
 		m_Bitmap = 0;
+	}
+
+	// Release the bitmap object.
+	if (gameStartImg)
+	{
+		gameStartImg->Shutdown();
+		delete gameStartImg;
+		gameStartImg = 0;
+	}
+
+	// Release the bitmap object.
+	if (gameOverImg)
+	{
+		gameOverImg->Shutdown();
+		delete gameOverImg;
+		gameOverImg = 0;
+	}
+
+	// Release the bitmap object.
+	if (gameClearImg)
+	{
+		gameClearImg->Shutdown();
+		delete gameClearImg;
+		gameClearImg = 0;
 	}
 
 	// Release the bitmap object.
@@ -718,24 +803,58 @@ void GraphicsClass::InitCarObjectPos() {
 	carModel[11].worldPosition.y = 71.0f;
 }
 
+void GraphicsClass::ResetGame() {
+	playerPos = XMFLOAT3(2.2f, 0, 2.0f);
+	playerSystemPos = XMFLOAT3(2.2f, 0, 0);
+	playerBackPos = XMFLOAT3(2.2f, 0, 0);
+
+	mapZpos1 = 0.0f;
+	mapZpos2 = 98.0f;
+	fuelGauge = 0.0f;
+	exSpeed = 0.0f;
+	score = 0.0f;
+	life = 3;
+
+	InitCarObjectPos();
+}
+
 bool GraphicsClass::Render(float rotation)
 {
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
 	XMMATRIX playerWorldMatrix, UIMatrix, UIViewMatrix, mapWorldMatrix, mapWorldMatrix2, skyDomeMatrix;
 	XMFLOAT3 cameraPosition;
 	bool result;
-	rotation += (float)XM_PI;
-	mapSpeed = 0.5f;
-	carObjectSpeed = 0.2f;
-	score += (mapSpeed + exSpeed) / 10;
-	mapZpos1 -= (mapSpeed + exSpeed);
-	mapZpos2 -= (mapSpeed + exSpeed);
+
 	objectNum = 0;
+
+	if (isGameStart && !isGameClear && !isGameOver) {
+		rotation += (float)XM_PI;
+		mapSpeed = 0.5f;
+		carObjectSpeed = 0.2f;
+		score += (mapSpeed + exSpeed) / 10;
+		mapZpos1 -= (mapSpeed + exSpeed);
+		mapZpos2 -= (mapSpeed + exSpeed);
+	}
+	else {
+		exSpeed = 0;
+		mapSpeed = 0;
+		carObjectSpeed = 0;
+	}
+
+	if (life <= 0) {
+		isGameOver = true;
+		ResetGame();
+	}
+
+	if (score > 300) {
+		isGameClear = true;
+		ResetGame();
+	}
 
 	if (mapZpos1 < -70.0f) mapZpos1 = 126.0f;
 	if (mapZpos2 < -70.0f) mapZpos2 = 126.0f;
 
-	if (usingBooster) 
+	if (usingBooster)
 	{
 		fuelGauge -= 2;
 		if (fuelGauge <= 0)
@@ -744,13 +863,13 @@ bool GraphicsClass::Render(float rotation)
 			usingBooster = false;
 		}
 	}
-	else if (fuelGauge >= 500) 
-	{ 
-		fuelGauge = 500; 
-	}
-	else 
+	else if (fuelGauge >= 500)
 	{
-		fuelGauge++; 
+		fuelGauge = 500;
+	}
+	else
+	{
+		if (isGameStart) fuelGauge++;
 	}
 
 	if (usingBooster) exSpeed = 0.5f;
@@ -767,8 +886,8 @@ bool GraphicsClass::Render(float rotation)
 	// Get the world, view, and projection matrices from the camera and d3d objects.
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_Camera->GetViewMatrix(UIViewMatrix);
-	m_D3D->GetWorldMatrix(worldMatrix);
 	m_D3D->GetWorldMatrix(UIMatrix);
+	m_D3D->GetWorldMatrix(worldMatrix);
 	m_D3D->GetWorldMatrix(playerWorldMatrix);
 	m_D3D->GetWorldMatrix(mapWorldMatrix);
 	m_D3D->GetWorldMatrix(mapWorldMatrix2);
@@ -778,7 +897,7 @@ bool GraphicsClass::Render(float rotation)
 	m_D3D->GetOrthoMatrix(orthoMatrix);
 
 	cameraPosition = m_Camera->GetPosition();
-	invincibility -= 1f;
+	invincibility -= 1.0f;
 
 	if (IsCollision()) {
 		if (!usingBooster) {
@@ -832,7 +951,7 @@ bool GraphicsClass::Render(float rotation)
 	// Rotate the world matrix by the rotation value so that the triangle will spin.
 	mapWorldMatrix = XMMatrixTranslation(0.0f, -1.0f, mapZpos1);
 	mapWorldMatrix2 = XMMatrixTranslation(0.0f, -1.0f, mapZpos2);
-	
+
 	// Put the map model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	mapModel->Render(m_D3D->GetDeviceContext());
 
@@ -871,8 +990,8 @@ bool GraphicsClass::Render(float rotation)
 		// Put the map model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 		carModel[i].m_carModel->Render(m_D3D->GetDeviceContext());
 		carModel[i].worldPosition = XMFLOAT2(carModel[i].worldPosition.x, carModel[i].worldPosition.y - (carObjectSpeed + exSpeed));
-		if (carModel[i].worldPosition.y < -20) { 
-			carModel[i].worldPosition.y = 140.0f; 
+		if (carModel[i].worldPosition.y < -20) {
+			carModel[i].worldPosition.y = 140.0f;
 			carModel[i].isFlying = false;
 			carModel[i].flyingPosition.x = 0.0f;
 			carModel[i].flyingPosition.y = 0.0f;
@@ -962,6 +1081,60 @@ bool GraphicsClass::Render(float rotation)
 	if (!result)
 	{
 		return false;
+	}
+
+	UIViewMatrix = XMMatrixTranslation(0, 0, m_Camera->GetPosition().z + 30.0f);
+	UIMatrix = XMMatrixRotationRollPitchYaw(XMConvertToRadians(m_Camera->GetRotation().x - 46), XMConvertToRadians(m_Camera->GetRotation().y), XMConvertToRadians(m_Camera->GetRotation().z));
+
+	if (!isGameStart) {
+
+		// Put the bitmap vertex and index buffers on the graphics pipeline to prepare them for drawing.
+		result = gameStartImg->Render(m_D3D->GetDeviceContext(), 0, 0);
+		if (!result)
+		{
+			return false;
+		}
+
+		// Render the bitmap with the texture shader.
+		result = m_TextureShader->Render(m_D3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), UIViewMatrix, UIViewMatrix * UIMatrix, orthoMatrix, gameStartImg->GetTexture());
+		if (!result)
+		{
+			return false;
+		}
+	}
+
+	if (isGameOver) {
+
+		// Put the bitmap vertex and index buffers on the graphics pipeline to prepare them for drawing.
+		result = gameOverImg->Render(m_D3D->GetDeviceContext(), 0, 0);
+		if (!result)
+		{
+			return false;
+		}
+
+		// Render the bitmap with the texture shader.
+		result = m_TextureShader->Render(m_D3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), UIViewMatrix, UIViewMatrix * UIMatrix, orthoMatrix, gameOverImg->GetTexture());
+		if (!result)
+		{
+			return false;
+		}
+	}
+
+	if (isGameClear) {
+
+		// Put the bitmap vertex and index buffers on the graphics pipeline to prepare them for drawing.
+		result = gameClearImg->Render(m_D3D->GetDeviceContext(), 0, 0);
+		if (!result)
+		{
+			return false;
+		}
+
+		// Render the bitmap with the texture shader.
+		result = m_TextureShader->Render(m_D3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), UIViewMatrix, UIViewMatrix * UIMatrix, orthoMatrix, gameClearImg->GetTexture());
+		if (!result)
+		{
+			return false;
+		}
 	}
 
 	//// Put the bitmap vertex and index buffers on the graphics pipeline to prepare them for drawing.
